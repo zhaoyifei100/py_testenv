@@ -1,4 +1,37 @@
-'''yfzhao MOVE to python3'''
+'''
+yfzhao MOVE to python3
+
+This file is used to convert AVES script to
+1.python script
+2.C header file
+3.C source file
+
+USAGE:
+    see if __main__ at the end of this file
+
+this class auto include "pc_cov_aves_def.py" file
+    def.py include i2c driver base on FTDI or Raspberry Pi
+
+You will get 4functions of i2c r/w:
+    readReg, writeReg, readBits, writeBits
+
+In the upper-level class, we generally inherit the aves_script class
+    that is:
+        from xxxxxx_scripts import aves_script
+        class phy_func(aves_script):
+            def __init__(self,i2c_port=1):
+                self.i2c_port = i2c_port
+                super().__init__(i2c_port, 0x58)
+
+!!In this way, we can realize that two i2c ports share a set of scripts!!
+There is a little trouble if you want to call the function in the upper class to use super().
+that is:
+    super().func_01_01_Chip_Power_Up()
+or:
+    super().writeReg(0x58, 0x00, 0x01)
+
+    
+'''
 
 #import json
 import os
@@ -179,7 +212,9 @@ class pc_cov_aves:
         f=open(aves_file_path,encoding="utf-8")
         fo=open(output_file_path,'w')
 
-        fo.write(f"#include \"def_gsu1001_es3.h\"\n")     #wtjiang use this file
+        #wtjiang use this file
+        #not common use ,del 
+        #fo.write(f"#include \"def_gsu1001_es3.h\"\n")     
 
 
         func_write_en = 0
@@ -230,7 +265,9 @@ class pc_cov_aves:
         f=open(aves_file_path,encoding="utf-8")
         fo=open(output_file_path,'w')
 
-        fo.write(f"#include \"gsu1001_scripts.h\"\n")  #common use
+        #fo.write(f"#include \"gsu1001_scripts.h\"\n")  #common use
+        output_file_path = self.py_out_name.split(".")[0]+".h"
+        fo.write(f"#include \"{output_file_path}\"\n")  #common use
 
         func_write_en = 0
         line_num = 1
