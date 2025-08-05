@@ -2,10 +2,12 @@ import xml.etree.ElementTree as ET
 import json
 import os
 import re
-from openpyxl import Workbook
-from openpyxl.styles import Font, Alignment, Border, Side, PatternFill
-from openpyxl.utils import get_column_letter
 from collections import defaultdict
+
+#build EXCEL file need 
+#from openpyxl import Workbook
+#from openpyxl.styles import Font, Alignment, Border, Side, PatternFill
+#from openpyxl.utils import get_column_letter
 
 class XMLParser:
     """
@@ -71,6 +73,9 @@ class XMLParser:
                         self.dev_addr_dict[page_name] = page_address
                         print(f"{page_name}=={page_address}")
         
+        # 生成反向字典，便于地址查找
+        self.addr_to_key = {int(v, 16): k for k, v in self.dev_addr_dict.items()}
+
         return self.dev_addr_dict
     
     def get_page_name_addr(self, output_file: str = None) -> str:
@@ -268,10 +273,26 @@ class XMLParser:
         print(f"成功生成增强版Excel文件: {output_path}，共 {row_num-2} 行配置数据")
         return output_path
 
+    def _get_key_by_addr(self, addr: int) -> str:
+        # 确保dev_addr_dict已初始化
+        if not self.dev_addr_dict:
+            self.parse_to_dict()
+        
+        page_name = self.addr_to_key.get(addr)
+
+        if page_name is None:
+            page_name = f"0x{addr:02X}" # 如果地址未找到，返回str
+
+        
+        return page_name
+
+        
+
     def _get_base_key(self, byte_address) -> str:
         addr_int = int(byte_address, 16)
         base_addr = addr_int >> 8
-        return f"0x{base_addr:02X}"
+        base_name = self._get_key_by_addr(base_addr)
+        return base_name
     
     def _organize_registers(self, register_list) -> dict:
         organized = {}
@@ -386,7 +407,8 @@ class XMLParser:
 
 # 使用示例
 if __name__ == "__main__":
-    xml_file = "d:/GS_Projects/gs_svn/gsu1001/eval/aves/gsu1001/GSU1K1_R3.xml"
+    #xml_file = "d:/GS_Projects/gs_svn/gsu1001/eval/aves/gsu1001/GSU1K1_R3.xml"
+    xml_file = "h:/gs_svn/gsu1001/eval/aves/gsu1001/GSU1K1_R3.xml"
     
     # 创建解析器实例
     parser = XMLParser(xml_file)

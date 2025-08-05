@@ -2,3 +2,8 @@
 *.dict
 *.c
 *.h
+
+# Python
+__pycache__/
+*.py[cod]
+*$py.class
