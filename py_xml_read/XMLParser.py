@@ -268,6 +268,23 @@ class XMLParser:
         print(f"成功生成增强版Excel文件: {output_path}，共 {row_num-2} 行配置数据")
         return output_path
 
+    def _get_base_key(self, byte_address) -> str:
+        addr_int = int(byte_address, 16)
+        base_addr = addr_int >> 8
+        return f"0x{base_addr:02X}"
+    
+    def _organize_registers(self, register_list) -> dict:
+        organized = {}
+        for reg in register_list:
+            byte_addr = reg.get("byte_address")
+            if not byte_addr:
+                continue
+            base_key = self._get_base_key(byte_addr)
+            if base_key not in organized:
+                organized[base_key] = []
+            organized[base_key].append(reg)
+        return organized
+
     def xml_to_json(self, json_file: str = None) -> str:
         """
         将XML转换为JSON文件，包含与to_excel相同的寄存器配置信息
@@ -356,9 +373,11 @@ class XMLParser:
                 
                 registers.append(register_data)
 
+        organized_registers = self._organize_registers(registers)
+
         # 保存为JSON文件
         with open(output_path, 'w', encoding='utf-8') as f:
-            json.dump(registers, f, ensure_ascii=False, indent=2)
+            json.dump(organized_registers, f, ensure_ascii=False, indent=4)
         
         print(f"成功生成JSON文件: {output_path}，共 {len(registers)} 条寄存器配置")
         return output_path
