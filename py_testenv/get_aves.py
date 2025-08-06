@@ -93,8 +93,11 @@ class GetAVES:
         reg_define_name = self.base_name + "_reg_def"
         fo.write(f"from {reg_define_name} import *\n")
 
+        pkg_dir = os.path.dirname(os.path.abspath(__file__))
+        get_aves_def_path = os.path.join(pkg_dir, "get_aves_def.py")
+
         # 250224, yfzhao use NEW FTDI driver
-        with open("py_testenv/get_aves_def.py", encoding="utf-8") as header_file:
+        with open(get_aves_def_path, encoding="utf-8") as header_file:
             for line in header_file:
                 fo.write(line)
         #----Write Header End----

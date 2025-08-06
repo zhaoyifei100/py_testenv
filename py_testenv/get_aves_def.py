@@ -33,11 +33,11 @@ class aves_script:
         self.system = get_system()
         if self.system == "linux":
             #from common.raspberry import raspberry
-            from pytestenv.drv_pi import DrvPI
+            from py_testenv.drv_pi import DrvPI
             self.raspberry_i2c = DrvPI(i2c_port=self.i2c_port)
         else:
             #from common.FTDI import FTDI
-            from pytestenv.drv_ftdi import DrvFTDI
+            from py_testenv.drv_ftdi import DrvFTDI
             self.ftdi_i2c = DrvFTDI(i2c_port=self.i2c_port)
 
 
