@@ -233,8 +233,6 @@ class GetAVES:
 
         return
 
-
-
     def write_c_file(self):
         #aves_txt_dir    = self.eval_dir
         #aves_file_path=aves_txt_dir+self.aves_script_name
@@ -325,6 +323,15 @@ class GetAVES:
 
         return
 
+    def buildall(self):
+        """
+        一键生成Python脚本、C头文件、C源文件。
+        用法：self.buildall()
+        """
+        self.write_aves_script()
+        self.write_c_header()
+        self.write_c_file()
+        print("GetAVES All files generated.")
 
 
 if __name__ == "__main__":
@@ -338,6 +345,7 @@ if __name__ == "__main__":
         xml_file_path=xml_file,
         aves_script_name=aves_script_name,
     )
-    cov.write_aves_script()
-    cov.write_c_header()
-    cov.write_c_file()
+    cov.buildall()
+    #cov.write_aves_script()
+    #cov.write_c_header()
+    #cov.write_c_file()
