@@ -1,3 +1,26 @@
+
+"""
+auto_py_script.py
+--------------------------------------
+自动化寄存器类生成工具。
+
+功能：
+1. 解析XML寄存器配置，自动生成寄存器结构的JSON数据。
+2. 支持去重、清理、分组寄存器字段。
+3. 可自动生成Python寄存器访问类文件，便于后续脚本开发。
+
+依赖：json, xml_parser
+
+用法示例：
+    from auto_py_script import AutoPyScript
+    autopy = AutoPyScript('your.xml')
+    autopy.generate_register_class_file('auto_class.py')
+
+作者：yfzhao
+
+--------------------------------------
+"""
+
 import json
 
 from xml_parser import XMLParser

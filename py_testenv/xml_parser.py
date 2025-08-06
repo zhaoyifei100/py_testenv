@@ -1,3 +1,29 @@
+
+"""
+XMLParser
+--------------------------------------
+多功能XML解析与寄存器配置工具类。
+
+功能：
+1. 解析寄存器XML，提取设备地址映射。
+2. 生成寄存器定义py文件、dict文件、json文件。
+3. 支持寄存器配置的去重、分组、导出等。
+
+依赖：openpyxl（如需Excel导出）
+
+用法示例：
+    from xml_parser import XMLParser
+    parser = XMLParser('your.xml')
+    parser.parse_to_dict()
+    parser.get_regdefing_py()
+    parser.xml_to_json()
+    parser.write_json_file()
+
+作者：yfzhao
+
+--------------------------------------
+"""
+
 import xml.etree.ElementTree as ET
 import json
 import os

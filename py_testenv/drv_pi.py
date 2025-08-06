@@ -1,3 +1,12 @@
+#########################PI I2C driver python3#####################
+#   yfzhao
+#   2024
+#   raspberry pi i2c driver in python3
+#   use i2ctransfer to access i2c bus
+#
+#########################PI I2C driver python3#####################
+
+
 import datetime
 import subprocess
 import time
