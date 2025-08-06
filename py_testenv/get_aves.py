@@ -64,6 +64,8 @@ class GetAVES:
         self.parser = XMLParser(xml_file_path)
         self.dev_addr_dict = self.parser.parse_to_dict()
 
+        print(f"aves path={self.aves_script_name}")
+
 
     def replace_func_name(self,func_name):
         func_name_new = list(func_name)
@@ -178,7 +180,7 @@ class GetAVES:
         f.close()
         fo.close()
 
-        print(f"Convert::from, {aves_file_path}")
+        #print(f"Convert::from, {aves_file_path}")
         print(f"Convert::to  , {output_file_path}")
 
         return
@@ -231,7 +233,7 @@ class GetAVES:
         f.close()
         fo.close()
 
-        print(f"Convert::from, {aves_file_path}")
+        #print(f"Convert::from, {aves_file_path}")
         print(f"Convert::to  , {output_file_path}")
 
         return
@@ -248,8 +250,8 @@ class GetAVES:
         fo=open(output_file_path,'w')
 
         #fo.write(f"#include \"gsu1001_scripts.h\"\n")  #common use
-        output_file_path = self.py_out_name.split(".")[0]+".h"
-        fo.write(f"#include \"{output_file_path}\"\n")  #common use
+        h_file_path = self.py_out_name.split(".")[0]+".h"
+        fo.write(f"#include \"{h_file_path}\"\n")  #common use
 
         func_write_en = 0
         line_num = 1
@@ -321,7 +323,7 @@ class GetAVES:
         f.close()
         fo.close()
 
-        print(f"Convert::from, {aves_file_path}")
+        #print(f"Convert::from, {aves_file_path}")
         print(f"Convert::to  , {output_file_path}")
 
         return

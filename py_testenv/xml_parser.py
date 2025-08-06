@@ -100,7 +100,7 @@ class XMLParser:
                     if full_address:
                         page_address = full_address[:4]  # 取前4位作为页地址
                         self.dev_addr_dict[page_name] = page_address
-                        print(f"{page_name}=={page_address}")
+                        #print(f"{page_name}=={page_address}")
         
         # 生成反向字典，便于地址查找
         self.addr_to_key = {int(v, 16): k for k, v in self.dev_addr_dict.items()}
