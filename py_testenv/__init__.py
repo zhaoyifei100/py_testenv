@@ -18,6 +18,6 @@ py_testenv 包初始化文件
 """
 
 # 可选：导入常用类
-# from .xml_parser import XMLParser
-# from .get_aves import GetAVES
+from .xml_parser import XMLParser
+from .get_aves import GetAVES
 from .auto_py_script import AutoPyScript

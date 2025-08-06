@@ -38,7 +38,7 @@ import os
 #import sys
 #sys.path.append(os.path.abspath(os.path.join(os.path.dirname(__file__), '..')))
 
-from xml_parser import XMLParser
+from .xml_parser import XMLParser
 
 class GetAVES:
     def __init__(self,

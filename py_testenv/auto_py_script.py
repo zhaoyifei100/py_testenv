@@ -23,7 +23,7 @@ auto_py_script.py
 
 import json
 
-from xml_parser import XMLParser
+from .xml_parser import XMLParser
 
 class AutoPyScript:
     def __init__(self, xml_file_path: str):
