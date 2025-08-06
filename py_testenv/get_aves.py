@@ -326,15 +326,6 @@ class GetAVES:
 
         return
 
-    def buildall(self):
-        """
-        一键生成Python脚本、C头文件、C源文件。
-        用法：self.buildall()
-        """
-        self.write_aves_script()
-        self.write_c_header()
-        self.write_c_file()
-        print("GetAVES All files generated.")
 
 
 if __name__ == "__main__":
@@ -348,7 +339,6 @@ if __name__ == "__main__":
         xml_file_path=xml_file,
         aves_script_name=aves_script_name,
     )
-    cov.buildall()
-    #cov.write_aves_script()
-    #cov.write_c_header()
-    #cov.write_c_file()
+    cov.write_aves_script()
+    cov.write_c_header()
+    cov.write_c_file()

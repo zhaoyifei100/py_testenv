@@ -24,14 +24,18 @@ auto_py_script.py
 import json
 
 from .xml_parser import XMLParser
+from .get_aves import GetAVES
 
 class AutoPyScript:
-    def __init__(self, xml_file_path: str):
+    def __init__(self,
+                 xml_file_path: str,
+                 aves_script_name: str):
         """
         初始化类，从XML里build json data。
         :param xml_file_path: XML文件路径
         """
-        
+        self.aves_script_name = aves_script_name
+
         #get data from XML use XMLParser
         self.parser = XMLParser(xml_file_path)
         self.parser.xml_to_json()
@@ -40,7 +44,21 @@ class AutoPyScript:
         self.unique_data = self._remove_page_level_duplicates()
         self.page_name_dict = self._create_page_name_dict()
 
+        # init GetAVES instance
+        self.get_aves = GetAVES(
+            xml_file_path=xml_file_path,
+            aves_script_name=aves_script_name,
+        )
 
+    def aves_buildall(self):
+        """
+        一键生成Python脚本、C头文件、C源文件。
+        用法：self.buildall()
+        """
+        self.get_aves.write_aves_script()
+        self.get_aves.write_c_header()
+        self.get_aves.write_c_file()
+        print("GetAVES All files generated.")
 
     def _clean_field_name(self, field_name):
         """
