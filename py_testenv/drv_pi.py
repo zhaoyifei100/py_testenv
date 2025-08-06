@@ -3,7 +3,7 @@ import subprocess
 import time
 
 
-class raspberry:
+class DrvPI:
     def __init__(
         self,
         i2c_port=1,         #raspberry default i2c_1

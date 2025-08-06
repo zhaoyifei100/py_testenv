@@ -9,7 +9,7 @@ This file is used to convert AVES script to
 USAGE:
     see if __main__ at the end of this file
 
-this class auto include "pc_cov_aves_def.py" file
+this class auto include "get_aves_def.py" file
     def.py include i2c driver base on FTDI or Raspberry Pi
 
 You will get 4functions of i2c r/w:
@@ -35,12 +35,12 @@ or:
 
 #import json
 import os
-import sys
-sys.path.append(os.path.abspath(os.path.join(os.path.dirname(__file__), '..')))
+#import sys
+#sys.path.append(os.path.abspath(os.path.join(os.path.dirname(__file__), '..')))
 
-from py_xml_read.XMLParser import XMLParser
+from xml_parser import XMLParser
 
-class pc_cov_aves:
+class GetAVES:
     def __init__(self,
                  xml_file_path="GSU1K1_R3.xml",
                  aves_script_name="gsu1001_2024_mpw_scripts.txt",
@@ -61,9 +61,8 @@ class pc_cov_aves:
             self.py_out_name=py_out_name
 
         #use XMLParser to read the XML file and get device address dictionary
-        parser = XMLParser(xml_file_path)
-        self.dev_addr_dict = parser.parse_to_dict()
-
+        self.parser = XMLParser(xml_file_path)
+        self.dev_addr_dict = self.parser.parse_to_dict()
 
 
     def replace_func_name(self,func_name):
@@ -79,28 +78,8 @@ class pc_cov_aves:
                 func_name_new[i_func_name] = "_"
         func_name_new = "".join(func_name_new)
         return func_name_new
-    
-
-    '''
-    def write_reg_define(self):
-        # yfzhao add function build regdefine
-        reg_define_lines = []
-        for key, value in self.dev_addr_dict.items():
-            reg_define_line = f"{value} = 0x{key}"
-            reg_define_lines.append(reg_define_line)
-
-        with open(self.py_out_local_dir + "reg_define.py", "w") as file:
-            file.write("\n".join(reg_define_lines))
-        print(f"write reg_define.py file done.")
-        return
-    '''
 
     def write_aves_script(self):
-        #aves_txt_dir    = self.eval_dir
-        #py_out_svn_dir  = self.eval_dir
-        #c_func_dir      = self.eval_dir
-
-        #aves_file_path=aves_txt_dir+self.aves_script_name
 
         aves_file_path=self.aves_script_name
         output_file_path=self.py_out_local_dir+self.py_out_name
@@ -109,11 +88,13 @@ class pc_cov_aves:
         fo=open(output_file_path,'w')
 
         #first import reg define
+        #build reg define file
+        self.parser.get_regdefing_py()
         reg_define_name = self.base_name + "_reg_def"
         fo.write(f"from {reg_define_name} import *\n")
 
         # 250224, yfzhao use NEW FTDI driver
-        with open("py_aves_read/pc_cov_aves_def.py", encoding="utf-8") as header_file:
+        with open("py_testenv/get_aves_def.py", encoding="utf-8") as header_file:
             for line in header_file:
                 fo.write(line)
         #----Write Header End----
@@ -330,14 +311,11 @@ class pc_cov_aves:
 
                         cfg_16bit_addr = cfg_txt[1].strip()
                         cfg_dev_addr= cfg_16bit_addr[0:2]
-                        if self.addr_conv:
-                            cfg_dev_addr_para=self.dev_addr_dict[cfg_dev_addr.upper()]
+
                         cfg_sub_addr= cfg_16bit_addr[2:]
                         cfg_content = cfg_txt[2].strip()
-                        if self.addr_conv:
-                            fo.write("    writeReg("+cfg_dev_addr_para+",0x"+cfg_sub_addr+",0x"+cfg_content+"); //"+comments)
-                        else:
-                            fo.write("    writeReg(0x"+cfg_dev_addr+",0x"+cfg_sub_addr+",0x"+cfg_content+"); //"+comments)
+
+                        fo.write("    writeReg(0x"+cfg_dev_addr+",0x"+cfg_sub_addr+",0x"+cfg_content+"); //"+comments)
                         fo.write("\n")
         f.close()
         fo.close()
@@ -356,7 +334,7 @@ if __name__ == "__main__":
     xml_file = "D:/GS_Projects/gs_svn/gsu1001/eval/aves/gsu1001/GSU1K1_R3.xml"
 
 
-    cov=pc_cov_aves(
+    cov=GetAVES(
         xml_file_path=xml_file,
         aves_script_name=aves_script_name,
     )

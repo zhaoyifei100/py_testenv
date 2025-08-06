@@ -71,7 +71,7 @@ class FT_DEVICE_LIST_INFO_NODE(ctypes.Structure):
         ("ftHandle", ctypes.c_void_p),
     ]
 
-class FTDI:
+class DrvFTDI:
     def __init__(
         self,
         i2c_port=0,  #FTDI default i2c port
@@ -440,7 +440,7 @@ class FTDI:
 
 
 if __name__ == "__main__":
-    i2c = FTDI(i2c_port=0)
+    i2c = DrvFTDI(i2c_port=0)
 
 
     i2c.ftdi_i2c_writeReg(0x26, 0x00, 0x03)

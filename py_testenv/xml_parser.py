@@ -5,9 +5,9 @@ import re
 from collections import defaultdict
 
 #build EXCEL file need 
-#from openpyxl import Workbook
-#from openpyxl.styles import Font, Alignment, Border, Side, PatternFill
-#from openpyxl.utils import get_column_letter
+from openpyxl import Workbook
+from openpyxl.styles import Font, Alignment, Border, Side, PatternFill
+from openpyxl.utils import get_column_letter
 
 class XMLParser:
     """
@@ -32,6 +32,9 @@ class XMLParser:
         self.pydef_output_file = f"{base_name}_reg_def.py"
         self.excel_output_file = f"{base_name}_Register_Config.xlsx"
         self.json_output_file = f"{base_name}_Register_Config.json"
+
+        #json data init
+        self.json_data = {}
     
     # ========== 原XMLDeviceAddressParser功能 ==========
     def parse_to_dict(self) -> dict:
@@ -306,13 +309,26 @@ class XMLParser:
             organized[base_key].append(reg)
         return organized
 
-    def xml_to_json(self, json_file: str = None) -> str:
+    def write_json_file(self, json_file: str = None) -> None:
+        """
+        将寄存器配置写入JSON文件
+        :param json_file: (可选)自定义输出文件路径
+        """
+        # 如果self.json_data为空，先调用xml_to_json生成数据
+        if not self.json_data:
+            self.xml_to_json()
+        output_path = json_file if json_file else self.json_output_file
+        with open(output_path, 'w', encoding='utf-8') as f:
+            json.dump(self.json_data, f, ensure_ascii=False, indent=4)
+        print(f"成功生成JSON文件: {output_path}")
+
+    def xml_to_json(self) -> None:
         """
         将XML转换为JSON文件，包含与to_excel相同的寄存器配置信息
         :param json_file: (可选)自定义输出文件路径
         :return: 实际使用的输出文件路径
         """
-        output_path = json_file if json_file else self.json_output_file
+        #output_path = json_file if json_file else self.json_output_file
         
         registers = []
         
@@ -394,21 +410,16 @@ class XMLParser:
                 
                 registers.append(register_data)
 
-        organized_registers = self._organize_registers(registers)
-
-        # 保存为JSON文件
-        with open(output_path, 'w', encoding='utf-8') as f:
-            json.dump(organized_registers, f, ensure_ascii=False, indent=4)
-        
-        print(f"成功生成JSON文件: {output_path}，共 {len(registers)} 条寄存器配置")
-        return output_path
+        # 组织寄存器数据, 可选是否write to json
+        self.json_data = self._organize_registers(registers)
+        return
 
 
 
 # 使用示例
 if __name__ == "__main__":
-    #xml_file = "d:/GS_Projects/gs_svn/gsu1001/eval/aves/gsu1001/GSU1K1_R3.xml"
-    xml_file = "h:/gs_svn/gsu1001/eval/aves/gsu1001/GSU1K1_R3.xml"
+    xml_file = "d:/GS_Projects/gs_svn/gsu1001/eval/aves/gsu1001/GSU1K1_R3.xml"
+    #xml_file = "h:/gs_svn/gsu1001/eval/aves/gsu1001/GSU1K1_R3.xml"
     
     # 创建解析器实例
     parser = XMLParser(xml_file)
@@ -416,10 +427,10 @@ if __name__ == "__main__":
     #parser.get_page_name_addr()  # 自动保存为"GSU1K1_R3_dev_addr.dict"
     
     # STEP 1: 提取设备地址并保存为PY文件
-    parser.get_regdefing_py()  # 自动保存为"GSU1K1_R3_reg_def.py"
+    #parser.get_regdefing_py()  # 自动保存为"GSU1K1_R3_reg_def.py"
     
     # STEP 2, OPTION: 转换为Excel文件
-    #parser.xml_to_excel()  # 自动保存为"GSU1K1_R3_Register_Config.xlsx"
+    parser.xml_to_excel()  # 自动保存为"GSU1K1_R3_Register_Config.xlsx"
 
     # STEP 3: 转换为JSON文件
-    parser.xml_to_json()  # 自动保存为"GSU1K1_R3_Register_Config.json"
+    parser.write_json_file()  # 自动保存为"GSU1K1_R3_Register_Config.json"

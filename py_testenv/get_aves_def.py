@@ -33,12 +33,12 @@ class aves_script:
         self.system = get_system()
         if self.system == "linux":
             #from common.raspberry import raspberry
-            from pytestenv.py_raspberry import raspberry
-            self.raspberry_i2c = raspberry(i2c_port=self.i2c_port)
+            from pytestenv.drv_pi import DrvPI
+            self.raspberry_i2c = DrvPI(i2c_port=self.i2c_port)
         else:
             #from common.FTDI import FTDI
-            from pytestenv.py_ftdi import FTDI
-            self.ftdi_i2c = FTDI(i2c_port=self.i2c_port)
+            from pytestenv.drv_ftdi import DrvFTDI
+            self.ftdi_i2c = DrvFTDI(i2c_port=self.i2c_port)
 
 
     def readReg(self, addr1, addr2):
