@@ -456,7 +456,7 @@ if __name__ == "__main__":
     #parser.get_regdefing_py()  # 自动保存为"GSU1K1_R3_reg_def.py"
     
     # STEP 2, OPTION: 转换为Excel文件
-    parser.xml_to_excel()  # 自动保存为"GSU1K1_R3_Register_Config.xlsx"
+    #parser.xml_to_excel()  # 自动保存为"GSU1K1_R3_Register_Config.xlsx"
 
     # STEP 3: 转换为JSON文件
     parser.write_json_file()  # 自动保存为"GSU1K1_R3_Register_Config.json"

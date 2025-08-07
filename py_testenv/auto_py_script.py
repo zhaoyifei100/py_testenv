@@ -60,32 +60,31 @@ class AutoPyScript:
         self.get_aves.write_c_file()
         print("GetAVES All files generated.")
 
-    def _clean_field_name(self, field_name):
+    def _clean_reg_name(self, reg_name):
         """
-        清理field_name，去掉[n:m]部分。
-        例如：将 'tseq_err_cnt[15:0]' 转换为 'tseq_err_cnt'
+        清理reg_name中的空格，
         """
-        if not field_name:
-            return field_name
-        return field_name.split('[')[0]
+        if not reg_name:
+            return reg_name
+        #return field_name.split('[')[0]
+        return reg_name.replace(' ', '_')
 
     def _create_page_name_dict(self):
         """
-        从unique_data生成一个只包含PAGE name和field_name的字典。
-        field_name会去掉[n:m]部分。
+        从unique_data生成一个只包含PAGE name和register_name的字典。
         """
         page_name_dict = {}
         for key, registers in self.unique_data.items():
             page_name_dict[key] = [
-                self._clean_field_name(reg.get("field_name"))
+                self._clean_reg_name(reg.get("register_name"))
                 for reg in registers 
-                if reg.get("field_name")
+                if reg.get("register_name")
             ]
         return page_name_dict
 
     def _remove_page_level_duplicates(self):
         """
-        在每个PAGE下去除重复的field_name。
+        在每个PAGE下去除重复的register_name
         :return: 去重后的JSON数据
         """
         unique_data = {}
@@ -93,47 +92,26 @@ class AutoPyScript:
             seen_fields = set()
             unique_registers = []
             for register in registers:
-                field_name = self._clean_field_name(register.get("field_name"))
+                field_name = self._clean_reg_name(register.get("register_name"))
                 if field_name and field_name not in seen_fields:
                     unique_registers.append(register)
                     seen_fields.add(field_name)
             unique_data[key] = unique_registers
         return unique_data
 
-    def print_field_names(self):
-        """
-        遍历JSON数据并打印field_name。
-        """
-        for key, registers in self.data.items():
-            for register in registers:
-                field_name = register.get("field_name")
-                if field_name:
-                    clean_name = self._clean_field_name(field_name)
-                    print(f"{key}: {clean_name}")
-
-    def print_page_level_unique_field_names(self):
-        """
-        打印每个PAGE下不重复的field_name。
-        """
-        for key, registers in self.unique_data.items():
-            for register in registers:
-                field_name = register.get("field_name")
-                if field_name:
-                    clean_name = self._clean_field_name(field_name)
-                    print(f"{key}: {clean_name}")
-
     def _convert_to_valid_class_name(self, name: str) -> str:
         """
         将寄存器名称转换为有效的Python类名
         处理以下情况：
-        1. 移除特殊字符 ([]:)
+        1. 移除特殊字符 (:)
         2. 处理以数字开头的类名（添加前缀reg_）
         
         :param name: 原始寄存器名称
         :return: 有效的Python类名
         """
         # 移除特殊字符
-        valid_name = name.replace('[', '_').replace(']', '_').replace(':', '_')
+        #valid_name = name.replace('[', '_').replace(']', '_').replace(':', '_')
+        valid_name = name.replace(':', '_')
         
         # 检查是否以数字开头
         if valid_name[0].isdigit():
