@@ -29,12 +29,14 @@ from .get_aves import GetAVES
 class AutoPyScript:
     def __init__(self,
                  xml_file_path: str,
-                 aves_script_name: str):
+                 aves_script_name: str,
+                 class_instance_name: str = "super()"):
         """
         初始化类，从XML里build json data。
         :param xml_file_path: XML文件路径
         """
         self.aves_script_name = aves_script_name
+        self.class_instance_name = class_instance_name
 
         #get data from XML use XMLParser
         self.parser = XMLParser(xml_file_path)
@@ -43,6 +45,7 @@ class AutoPyScript:
 
         self.unique_data = self._remove_page_level_duplicates()
         self.page_name_dict = self._create_page_name_dict()
+        self.page_reg_map = self._create_page_reg_map()
 
         # init GetAVES instance
         self.get_aves = GetAVES(
@@ -60,14 +63,21 @@ class AutoPyScript:
         self.get_aves.write_c_file()
         print("GetAVES All files generated.")
 
-    def _clean_reg_name(self, reg_name):
+    def _create_page_reg_map(self):
         """
-        清理reg_name中的空格，
+        构建两级哈希表：PAGE -> register_name -> [寄存器信息字典]，支持O(1)查找。
         """
-        if not reg_name:
-            return reg_name
-        #return field_name.split('[')[0]
-        return reg_name.replace(' ', '_')
+        page_reg_map = {}
+        for page, registers in self.data.items():
+            if page not in page_reg_map:
+                page_reg_map[page] = {}
+            for reg in registers:
+                reg_name = reg.get("register_name")
+                if reg_name:
+                    if reg_name not in page_reg_map[page]:
+                        page_reg_map[page][reg_name] = []
+                    page_reg_map[page][reg_name].append(reg.copy())
+        return page_reg_map
 
     def _create_page_name_dict(self):
         """
@@ -76,7 +86,7 @@ class AutoPyScript:
         page_name_dict = {}
         for key, registers in self.unique_data.items():
             page_name_dict[key] = [
-                self._clean_reg_name(reg.get("register_name"))
+                reg.get("register_name")
                 for reg in registers 
                 if reg.get("register_name")
             ]
@@ -92,7 +102,7 @@ class AutoPyScript:
             seen_fields = set()
             unique_registers = []
             for register in registers:
-                field_name = self._clean_reg_name(register.get("register_name"))
+                field_name = register.get("register_name")
                 if field_name and field_name not in seen_fields:
                     unique_registers.append(register)
                     seen_fields.add(field_name)
@@ -165,13 +175,75 @@ class AutoPyScript:
         
         print(f"寄存器类文件已生成: {output_file_path}")
 
+    def _get_register_info(self, page: str, reg_name: str) -> list:
+        """
+        根据输入的page和reg_name，O(1)查找寄存器信息。
+        :param page: PAGE名称
+        :param reg_name: 要查询的寄存器名称
+        :return: 包含该寄存器所有信息的字典（如有多个，返回列表）
+        """
+        page_dict = self.page_reg_map.get(page)
+        if not page_dict:
+            return None
+        result = page_dict.get(reg_name)
+        if not result:
+            return None
+        #result is dict list
+        return result
 
-# 使用示例
-if __name__ == "__main__":
-    xml_file = "d:/GS_Projects/gs_svn/gsu1001/eval/aves/gsu1001/GSU1K1_R3.xml"
-    autopy = AutoPyScript(xml_file)
-    #getter.print_page_level_unique_field_names()
-    #print(getter.page_name_dict)
+    def _get_addr12(self, addr_str) -> list:
+        addr_int = int(addr_str, 16)
+        addr1 = (addr_int >> 8) & 0xFF
+        addr2 = addr_int & 0xFF
+        # 返回十六进制字符串
+        return [f"0x{addr1:02X}", f"0x{addr2:02X}"]
+    
+    def _get_rshift_str(self, byte_shift: str) -> str:
+        shift = int(byte_shift)
+        if shift == 0:
+            return ""
+        elif shift < 0:
+            return f"<<{-shift}"
+        else:
+            return f">>{shift}"
 
-    output_file = "auto_class.py"
-    autopy.generate_register_class_file(output_file)
+    def _get_read_cmd(self, reg_info) -> str:
+        addr_str = reg_info.get("byte_address")
+        [addr1, addr2] = self._get_addr12(addr_str)
+        #lsb = int(reg_info.get("byte_shift")) % 8
+        #bits = reg_info.get("effective_bits")
+
+        byte_mask = reg_info.get("byte_mask")
+        if byte_mask == "0xFF":
+            byte_mask_str = ""
+        else:
+            byte_mask_str = f"&{byte_mask}"
+
+        shift_str = self._get_rshift_str(reg_info.get("byte_shift"))
+
+        cmd = f"( {self.class_instance_name}.readReg({addr1},{addr2}){byte_mask_str} ) {shift_str}"
+        return cmd
+        
+
+    def _get_read_list(self, page: str, reg_name: str) -> list:
+        return_list = []
+        #get reg info
+        reg_info_list = self._get_register_info(page, reg_name)
+        reg_len = len(reg_info_list)
+        if reg_len == 0:
+            return_list.append(f"# {reg_name} get read function fail")
+            return return_list
+        elif reg_len == 1:
+            #only one reg info
+            reg_info = reg_info_list[0]
+            full_cmd = f"rb_{reg_name}"+f" = {self._get_read_cmd(reg_info)}"
+            return_list.append(full_cmd)
+        else:
+            #multiple reg info, need to read all
+            #set rb to 0
+            return_list.append(f"rb_{reg_name} = 0")
+            for reg_info in reg_info_list:
+                full_cmd = f"rb_{reg_name}"+f" |= {self._get_read_cmd(reg_info)}"
+                return_list.append(full_cmd)
+        return return_list
+

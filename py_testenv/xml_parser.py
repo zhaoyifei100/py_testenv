@@ -335,6 +335,16 @@ class XMLParser:
             organized[base_key].append(reg)
         return organized
 
+    def _clean_reg_name(self):
+        """
+        在self.json里面清理register_name中的空格
+        """
+        for key, registers in self.json_data.items():
+            for reg in registers:
+                reg_name = reg.get("register_name")
+                if reg_name:
+                    reg["register_name"] = reg_name.replace(' ', '_')
+
     def write_json_file(self, json_file: str = None) -> None:
         """
         将寄存器配置写入JSON文件
@@ -438,6 +448,9 @@ class XMLParser:
 
         # 组织寄存器数据, 可选是否write to json
         self.json_data = self._organize_registers(registers)
+        # 清理寄存器名称中的空格
+        self._clean_reg_name()
+
         return
 
 
