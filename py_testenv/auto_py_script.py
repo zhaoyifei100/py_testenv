@@ -27,6 +27,7 @@ from .xml_parser import XMLParser
 from .get_aves import GetAVES
 
 class AutoPyScript:
+
     def __init__(self,
                  xml_file_path: str,
                  aves_script_name: str,
@@ -247,3 +248,87 @@ class AutoPyScript:
                 return_list.append(full_cmd)
         return return_list
 
+    def _mask_to_lsb_bits(self, mask: str) -> list:
+        """
+        将I2C掩码转换为LSB位置和位数
+        
+        参数:
+            mask (str): 掩码值，是十六进制字符串(如"0xF0")
+        
+        返回:
+            tuple: (lsb, bits) - LSB位置和位数
+            
+        示例:
+            >>> mask_to_lsb_bits("0xF0")
+            (4, 4)
+            >>> mask_to_lsb_bits(0b11000000)
+            (6, 2)
+        """
+        mask = int(mask, 16)
+        
+        # 确保mask是整数
+        mask = int(mask)
+        
+        if mask == 0:
+            return (0, 0)
+        
+        # 计算LSB位置（第一个置1的位的位置）
+        lsb = (mask & -mask).bit_length() - 1
+        
+        # 计算连续1的位数
+        shifted = mask >> lsb
+        bits = 0
+        while (shifted & 1):
+            bits += 1
+            shifted >>= 1
+        
+        return [lsb, bits]
+    
+    def _get_w_val(self, shift: str, mask: str, w_str: str) -> int:
+        # 处理字符串形式的input
+        if w_str.startswith(('0x', '0X')):
+            w_num = int(w_str, 16)
+        else:
+            w_num = int(w_str)
+
+        shift_num = int(shift)
+        mask_num = int(mask, 16)
+        if shift_num == 0:
+            out_val = w_num & mask_num
+        elif shift_num < 0:
+            out_val = (w_num >> -shift_num) & mask_num
+        else:
+            out_val = ((w_num << shift_num) & mask_num ) >> shift_num
+        return out_val
+
+
+    def _get_write_cmd(self, reg_info, value_var="val") -> str:
+        addr_str = reg_info.get("byte_address")
+        mask_str = reg_info.get("byte_mask")
+        shift_str = reg_info.get("byte_shift")
+        value_str = str(value_var)
+
+        [addr1, addr2] = self._get_addr12(addr_str)
+        [lsb, bits] = self._mask_to_lsb_bits(mask_str)
+        write_val_num = self._get_w_val(shift_str, mask_str, value_str)
+
+        cmd = f"{self.class_instance_name}.writeBits({addr1},{addr2},{lsb},{bits},{write_val_num})"
+        return cmd
+
+    def _get_write_list(self, page: str, reg_name: str, value_var="val") -> list:
+        return_list = []
+        reg_info_list = self._get_register_info(page, reg_name)
+        reg_len = len(reg_info_list)
+        if reg_len == 0:
+            return_list.append(f"# {reg_name} get write function fail")
+            return return_list
+        elif reg_len == 1:
+            reg_info = reg_info_list[0]
+            full_cmd = self._get_write_cmd(reg_info, value_var)
+            return_list.append(full_cmd)
+        else:
+            # 多段写，需拆分
+            for reg_info in reg_info_list:
+                full_cmd = self._get_write_cmd(reg_info, value_var)
+                return_list.append(full_cmd)
+        return return_list
