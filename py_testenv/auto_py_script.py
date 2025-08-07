@@ -22,6 +22,8 @@ auto_py_script.py
 """
 
 import json
+import os
+import shutil
 
 from .xml_parser import XMLParser
 from .get_aves import GetAVES
@@ -335,3 +337,58 @@ class AutoPyScript:
                 full_cmd = self._get_write_cmd(reg_info, value_str)
                 return_list.append(full_cmd)
         return return_list
+    
+    def _backup_file_before_write(self, file_path: str):
+        if os.path.isfile(file_path):
+            backup_path = file_path + ".bak"
+            shutil.copyfile(file_path, backup_path)
+            print(f"Backup created: {backup_path}")
+        else:
+            print(f"No existing file to backup: {file_path}")
+    
+    def _revert_file_from_backup(self, file_path: str):
+        backup_path = file_path + ".bak"
+        if os.path.isfile(backup_path):
+            shutil.copyfile(backup_path, file_path)
+            print(f"File reverted from backup: {file_path}")
+        else:
+            print(f"No backup file found to revert: {backup_path}")
+
+    def auto_register_op_script(self, file_path: str):
+        """
+        自动生成寄存器操作脚本，replace指定文件。
+        :param file_path: 输出的Python脚本文件路径
+        """
+        import re
+        # 备份原文件
+        self._backup_file_before_write(file_path)
+        # 读取原文件内容
+        with open(file_path, "r", encoding="utf-8") as fr:
+            lines = fr.readlines()
+        new_lines = []
+        # Regex 匹配 AutoClass.<PAGE>.<reg>.<op>()
+        pattern = re.compile(r"AutoClass\.(?P<page>\w+)\.(?P<reg>\w+)\.(?P<op>r|w)\(\s*(?P<args>[^)]*)\)")
+        for line in lines:
+            m = pattern.search(line)
+            if m:
+                page = m.group('page')
+                reg = m.group('reg')
+                op = m.group('op')
+                args = m.group('args').strip()
+                # 保留原始缩进
+                indent = re.match(r'\s*', line).group(0)
+
+                if op == 'r':
+                    cmds = self._get_read_list(page, reg)
+                else:
+                    # w操作时，优先用括号内参数作为value
+                    value_var = args if args else 'val'
+                    cmds = self._get_write_list(page, reg, value_var=value_var)
+                for cmd in cmds:
+                    new_lines.append(f"{indent}{cmd}\n")
+            else:
+                new_lines.append(line)
+        # 写回文件
+        with open(file_path, "w", encoding="utf-8") as fw:
+            fw.writelines(new_lines)
+            
