@@ -306,16 +306,17 @@ class AutoPyScript:
         addr_str = reg_info.get("byte_address")
         mask_str = reg_info.get("byte_mask")
         shift_str = reg_info.get("byte_shift")
-        value_str = str(value_var)
+        #value_str = str(value_var)
 
         [addr1, addr2] = self._get_addr12(addr_str)
         [lsb, bits] = self._mask_to_lsb_bits(mask_str)
-        write_val_num = self._get_w_val(shift_str, mask_str, value_str)
+        write_val_num = self._get_w_val(shift_str, mask_str, value_var)
 
         cmd = f"{self.class_instance_name}.writeBits({addr1},{addr2},{lsb},{bits},{write_val_num})"
         return cmd
 
     def _get_write_list(self, page: str, reg_name: str, value_var="val") -> list:
+        value_str = str(value_var)
         return_list = []
         reg_info_list = self._get_register_info(page, reg_name)
         reg_len = len(reg_info_list)
@@ -324,11 +325,11 @@ class AutoPyScript:
             return return_list
         elif reg_len == 1:
             reg_info = reg_info_list[0]
-            full_cmd = self._get_write_cmd(reg_info, value_var)
+            full_cmd = self._get_write_cmd(reg_info, value_str)
             return_list.append(full_cmd)
         else:
             # 多段写，需拆分
             for reg_info in reg_info_list:
-                full_cmd = self._get_write_cmd(reg_info, value_var)
+                full_cmd = self._get_write_cmd(reg_info, value_str)
                 return_list.append(full_cmd)
         return return_list
