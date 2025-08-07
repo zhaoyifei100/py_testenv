@@ -304,7 +304,7 @@ class AutoPyScript:
         return out_val
 
 
-    def _get_write_cmd(self, reg_info, value_var="val") -> str:
+    def _get_write_cmd(self, reg_info, value_var) -> str:
         addr_str = reg_info.get("byte_address")
         mask_str = reg_info.get("byte_mask")
         shift_str = reg_info.get("byte_shift")
@@ -317,7 +317,7 @@ class AutoPyScript:
         cmd = f"{self.class_instance_name}.writeBits({addr1},{addr2},{lsb},{bits},{write_val_num})"
         return cmd
 
-    def _get_write_list(self, page: str, reg_name: str, value_var="val") -> list:
+    def _get_write_list(self, page: str, reg_name: str, value_var: str) -> list:
         #list add comment, format: #w PAGE:regname->value
         value_str = str(value_var)
         return_list = []
@@ -354,7 +354,7 @@ class AutoPyScript:
         else:
             print(f"No backup file found to revert: {backup_path}")
 
-    def auto_register_op_script(self, file_path: str):
+    def auto_register_replace(self, file_path: str):
         """
         自动生成寄存器操作脚本，replace指定文件。
         :param file_path: 输出的Python脚本文件路径
@@ -375,15 +375,15 @@ class AutoPyScript:
                 reg = m.group('reg')
                 op = m.group('op')
                 args = m.group('args').strip()
-                # 保留原始缩进
                 indent = re.match(r'\s*', line).group(0)
 
                 if op == 'r':
                     cmds = self._get_read_list(page, reg)
+                    print(f"[READ] {page}.{reg}")
                 else:
-                    # w操作时，优先用括号内参数作为value
-                    value_var = args if args else 'val'
-                    cmds = self._get_write_list(page, reg, value_var=value_var)
+                    value_var = args
+                    cmds = self._get_write_list(page, reg, value_var)
+                    print(f"[WRITE] {page}.{reg} <=", value_var)
                 for cmd in cmds:
                     new_lines.append(f"{indent}{cmd}\n")
             else:
@@ -391,4 +391,4 @@ class AutoPyScript:
         # 写回文件
         with open(file_path, "w", encoding="utf-8") as fw:
             fw.writelines(new_lines)
-            
+        return
