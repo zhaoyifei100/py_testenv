@@ -341,6 +341,10 @@ class XMLParser:
         outstr = str.replace(' ', '_')
         outstr = outstr.replace('/', '_')
         outstr = outstr.replace('-', '_')
+        outstr = outstr.replace('[', '_')
+        outstr = outstr.replace(']', '_')
+        outstr = outstr.replace('(', '_')
+        outstr = outstr.replace(')', '_')
         return outstr
 
     def _clean_reg_name(self):
