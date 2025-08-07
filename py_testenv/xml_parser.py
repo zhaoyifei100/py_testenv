@@ -335,6 +335,14 @@ class XMLParser:
             organized[base_key].append(reg)
         return organized
 
+    def __clear_reg_str(self, str):
+        #ADD RULE HERE
+        #for strange i2c name
+        outstr = str.replace(' ', '_')
+        outstr = outstr.replace('/', '_')
+        outstr = outstr.replace('-', '_')
+        return outstr
+
     def _clean_reg_name(self):
         """
         在self.json里面清理register_name中的空格
@@ -343,7 +351,7 @@ class XMLParser:
             for reg in registers:
                 reg_name = reg.get("register_name")
                 if reg_name:
-                    reg["register_name"] = reg_name.replace(' ', '_')
+                    reg["register_name"] = self.__clear_reg_str(reg_name)
 
     def write_json_file(self, json_file: str = None) -> None:
         """
