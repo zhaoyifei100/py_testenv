@@ -316,6 +316,7 @@ class AutoPyScript:
         return cmd
 
     def _get_write_list(self, page: str, reg_name: str, value_var="val") -> list:
+        #list add comment, format: #w PAGE:regname->value
         value_str = str(value_var)
         return_list = []
         reg_info_list = self._get_register_info(page, reg_name)
@@ -326,9 +327,10 @@ class AutoPyScript:
         elif reg_len == 1:
             reg_info = reg_info_list[0]
             full_cmd = self._get_write_cmd(reg_info, value_str)
+            return_list.append(f"#w {page}:{reg_name}->{value_str}")
             return_list.append(full_cmd)
         else:
-            # 多段写，需拆分
+            return_list.append(f"#w {page}:{reg_name}->{value_str}")
             for reg_info in reg_info_list:
                 full_cmd = self._get_write_cmd(reg_info, value_str)
                 return_list.append(full_cmd)
